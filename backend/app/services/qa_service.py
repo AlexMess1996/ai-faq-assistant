@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 
 class QAService:
-    def __init__(self, threshold: float = 0.2):
+    def __init__(self, threshold: float = 0.4):
         # Load your embedding model
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
         self.dim = self.model.get_sentence_embedding_dimension()
