@@ -7,7 +7,7 @@ from app.services.qa_service import QAService
 app = FastAPI(title="AI FAQ Assistant")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000","http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
