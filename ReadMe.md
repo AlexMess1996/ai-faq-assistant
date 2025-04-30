@@ -33,30 +33,36 @@ An interactive web application that lets users upload documents and ask question
 - Docker & Docker Compose (optional)  
 
 
-Backend Setup
-
+## Backend Setup
+```
 cd backend
 python -m venv .venv
+
 # Activate venv
 # Windows:
 .\\.venv\\Scripts\\activate
+
 # macOS/Linux:
 # source .venv/bin/activate
 
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
-
-Frontend Setup
-
+```
+---
+# Frontend Setup
+```
 cd frontend
 npm install
 npm run dev
+```
+---
 
-Frontend running at http://localhost:3000
+ - **Frontend running at:  http://localhost:3000**
 
-Backend running at http://localhost:8000
-
-ai-faq-assistant/
+- **Backend running at http://localhost:8000**
+---
+# 📂 Project Structure
+```ai-faq-assistant/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                # FastAPI entrypoint
@@ -73,38 +79,44 @@ ai-faq-assistant/
 ├── .gitignore                     # Ignored files
 ├── docker-compose.yml             # Dev container orchestration
 └── README.md                      # Project documentation
+```
+---
+
+# 💡 Usage
+
+1. Upload a document via the "Upload Document" panel.
+
+2. Ingested chunks count appears once processing completes.
+
+3. Ask questions in the "Ask the Assistant" panel.
+
+4. Results appear with a similarity score for transparency.
+---
+# ⚠️ Model Behavior
+* **Retrieval-Only:** The backend uses embeddings + FAISS to retrieve text chunks most similar to your query—it does not generate summaries or new content.
+
+* **Exact-Match Sensitivity:** With a small corpus, off-topic questions can still return content because FAISS will always find the “nearest” vector. Use the similarity threshold to filter out irrelevant results.
+
+* **Threshold Tuning:** You can adjust the threshold in app/services/qa_service.py to control how “strict” the matching is. Higher values require closer semantic alignment; lower values return more results but may include false positives.
+
+* **Transient Index:** By default, the index is stored on disk (qa_index.idx) and reloaded on startup, but documents.json is ignored via .gitignore. Ensure you back up these files if you need permanent persistence.
+---
 
 
-Model Behavior
-Retrieval-Only: The backend uses embeddings + FAISS to retrieve text chunks most similar to your query—it does not generate summaries or new content.
+# 🤝 Contributing
+1. Fork the repository
 
-Exact-Match Sensitivity: With a small corpus, off-topic questions can still return content because FAISS will always find the “nearest” vector. Use the similarity threshold to filter out irrelevant results.
+2. Create a feature branch (git checkout -b feature/name)
 
-Threshold Tuning: You can adjust the threshold in app/services/qa_service.py to control how “strict” the matching is. Higher values require closer semantic alignment; lower values return more results but may include false positives.
+3. Commit your changes (git commit -m "feat: ...")
 
-Transient Index: By default, the index is stored on disk (qa_index.idx) and reloaded on startup, but documents.json is ignored via .gitignore. Ensure you back up these files if you need permanent persistence.
+4. Push to the branch (git push origin feature/name)
 
-💡 Usage
-Upload a document via the “Upload Document” panel.
+5. Open a Pull Request
 
-Ingested chunks count appears once processing completes.
+6. Please follow existing coding style and include tests for new functionality.
 
-Ask questions in the “Ask the Assistant” panel.
-
-Results appear with a similarity score for transparency.
-
-🤝 Contributing
-Fork the repository
-
-Create a feature branch (git checkout -b feature/name)
-
-Commit your changes (git commit -m "feat: ...")
-
-Push to the branch (git push origin feature/name)
-
-Open a Pull Request
-
-Please follow existing coding style and include tests for new functionality.
+---
 
 
 © 2025 Alexandros Messaritakis. All rights reserved.
