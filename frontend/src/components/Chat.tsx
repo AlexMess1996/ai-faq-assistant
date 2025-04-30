@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { askQuestion, Answer } from '../services/api';
+import { Box, Button, TextField, Stack, Typography, CircularProgress } from '@mui/material';
+import SendIcon from '@mui/icons-material/Send';
 
-const FALLBACK = "Sorry, I don't have an answer to that.";
+interface Answer {
+  text: string;
+  score: number;
+}
 
 export function Chat() {
   const [question, setQuestion] = useState('');
@@ -13,46 +17,61 @@ export function Chat() {
     if (!question) return;
     setLoading(true);
     try {
-      const resp = await askQuestion(question);
-      setAnswers(resp.answer);
-    } catch (err) {
+      const res = await fetch('http://localhost:8000/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+      if (!res.ok) throw new Error('Ask failed');
+      const { answer } = await res.json();
+      setAnswers(answer);
+    } catch {
       setAnswers([{ text: 'Error fetching answer', score: 0 }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const isFallback = answers.length === 1 && answers[0].text === FALLBACK;
-
   return (
-    <div className="p-4 border rounded mt-6">
-      <form onSubmit={handleAsk} className="mb-4">
-        <input
-          type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask something…"
-          className="w-full p-2 border rounded"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-2 px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
-        >
-          {loading ? 'Thinking…' : 'Ask'}
-        </button>
-      </form>
-
-      {isFallback ? (
-        <p className="italic text-gray-600">{FALLBACK}</p>
-      ) : (
-        answers.map((ans, i) => (
-          <div key={i} className="mb-2 p-2 bg-gray-100 rounded">
-            <p>{ans.text}</p>
-            <p className="text-sm text-gray-500">Score: {ans.score.toFixed(2)}</p>
-          </div>
-        ))
-      )}
-    </div>
+    <Box>
+      <Box component="form" onSubmit={handleAsk} sx={{ width: '100%' }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <TextField
+            variant="outlined"
+            placeholder="Type your question..."
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            fullWidth
+            sx={{ backgroundColor: 'background.paper', borderRadius: 1 }}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            endIcon={<SendIcon />}
+            disabled={!question || loading}
+            sx={{ height: 48 }}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Ask'}
+          </Button>
+        </Stack>
+      </Box>
+      <Stack spacing={2} mt={3}>
+        {answers.map((ans, idx) => (
+          <Box
+            key={idx}
+            p={2}
+            bgcolor="background.paper"
+            borderRadius={2}
+            boxShadow={1}
+          >
+            <Typography>{ans.text}</Typography>
+            <Typography variant="caption" color="textSecondary" align="right">
+              Score: {ans.score.toFixed(2)}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+    </Box>
   );
 }

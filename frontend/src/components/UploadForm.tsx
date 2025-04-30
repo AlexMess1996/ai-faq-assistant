@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { uploadFile } from '../services/api';
+import { Box, Button, Stack, Typography, CircularProgress } from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
-export function UploadForm({ onUploaded }: { onUploaded: (chunks: number) => void }) {
+interface UploadFormProps {
+  onUploaded: (chunks: number) => void;
+}
+
+export function UploadForm({ onUploaded }: UploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -12,7 +23,14 @@ export function UploadForm({ onUploaded }: { onUploaded: (chunks: number) => voi
     setLoading(true);
     setError(null);
     try {
-      const { ingested_chunks } = await uploadFile(file);
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('http://localhost:8000/upload', {
+        method: 'POST',
+        body: form,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      const { ingested_chunks } = await res.json();
       onUploaded(ingested_chunks);
     } catch (err: any) {
       setError(err.message);
@@ -22,24 +40,38 @@ export function UploadForm({ onUploaded }: { onUploaded: (chunks: number) => voi
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border rounded">
-      <label className="block mb-2">
-        Select document to upload:
-        <input
-          type="file"
-          accept=".txt,.pdf"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="mt-1"
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={!file || loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-      >
-        {loading ? 'Uploading…' : 'Upload'}
-      </button>
-      {error && <p className="mt-2 text-red-600">{error}</p>}
-    </form>
+    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+      <Stack spacing={2}>
+        <Button
+          variant="outlined"
+          component="label"
+          startIcon={<UploadFileIcon />}
+          fullWidth
+        >
+          {file?.name || 'Select File'}
+          <input
+            type="file"
+            accept=".txt,.pdf"
+            hidden
+            onChange={handleFileChange}
+          />
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={!file || loading}
+          fullWidth
+          sx={{ height: 48 }}
+        >
+          {loading ? <CircularProgress size={24} color="inherit" /> : 'Upload'}
+        </Button>
+        {error && (
+          <Typography color="error" variant="body2" align="center">
+            {error}
+          </Typography>
+        )}
+      </Stack>
+    </Box>
   );
 }
